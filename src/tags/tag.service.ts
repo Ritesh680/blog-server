@@ -99,7 +99,6 @@ class TagService {
 	}
 
 	async removeFollower(tagId: string, userId: string) {
-		console.log({ tagId });
 		return this.tag.findByIdAndUpdate(tagId, {
 			$pull: { followers: new mongoose.Types.ObjectId(userId) },
 		});

@@ -32,6 +32,6 @@ export function fileToBuffer(filePath: string) {
 		return fileData;
 	} catch (error) {
 		console.error("Error reading file:", error);
-		return null;
+		return Buffer.from("");
 	}
 }

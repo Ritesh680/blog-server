@@ -25,7 +25,9 @@ class ArticleService {
 					foreignField: "_id",
 					as: "user",
 					pipeline: [
-						{ $unwind: "$imagePath" },
+						{
+							$unwind: { path: "$imagePath", preserveNullAndEmptyArrays: true },
+						},
 						{ $project: { _id: 1, username: 1, imagePath: 1 } },
 					],
 				},
@@ -39,8 +41,8 @@ class ArticleService {
 					pipeline: [{ $project: { _id: 1, name: 1 } }],
 				},
 			},
-			{ $unwind: "$tag" },
-			{ $unwind: "$user" },
+			{ $unwind: { path: "$tag", preserveNullAndEmptyArrays: true } },
+			{ $unwind: { path: "$user", preserveNullAndEmptyArrays: true } },
 		]);
 	}
 
@@ -74,7 +76,9 @@ class ArticleService {
 					foreignField: "_id",
 					as: "user",
 					pipeline: [
-						{ $unwind: "$imagePath" },
+						{
+							$unwind: { path: "$imagePath", preserveNullAndEmptyArrays: true },
+						},
 						{
 							$project: {
 								_id: 1,
@@ -108,7 +112,12 @@ class ArticleService {
 								foreignField: "_id",
 								as: "user",
 								pipeline: [
-									{ $unwind: "$imagePath" },
+									{
+										$unwind: {
+											path: "$imagePath",
+											preserveNullAndEmptyArrays: true,
+										},
+									},
 									{ $project: { _id: 1, username: 1, imagePath: 1 } },
 								],
 							},

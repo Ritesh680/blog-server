@@ -3,6 +3,7 @@ import userService from "./user.service";
 import ApiResponse from "../middleware/response";
 import { decodeToken } from "../utils/functions";
 import articleService from "../article/article.service";
+import { uploadFileToS3 } from "../utils/uploadFile";
 
 class UserController {
 	async getAllUsers(req: Request, res: Response) {
@@ -58,6 +59,7 @@ class UserController {
 		const data = await userService.getUserFollowers(userId);
 		new ApiResponse(res).success(data, "User followers fetched successfully");
 	}
+
 	async getUserFollowing(req: Request, res: Response) {
 		const userId = req.params.id;
 		if (!userId) new ApiResponse(res).failed("User id is required", 400);
@@ -68,18 +70,27 @@ class UserController {
 	async updateUser(req: Request, res: Response) {
 		const userId = req.params.id;
 		const data = req.body;
-		const files = req.files;
+		const files = req.files as Express.Multer.File[];
 
-		const filePath = files
-			? Array.isArray(files)
-				? files?.map((file: { path: string }) => file.path)
-				: files.path
-			: "";
-		if (filePath) {
-			data.imagePath = filePath;
+		try {
+			if (files) {
+				const uploadPromises = files.map(async (file) => {
+					const fileKey = Date.now() + "-" + file.originalname;
+					await uploadFileToS3({
+						file: file,
+						key: fileKey,
+					});
+					return fileKey;
+				});
+				const uploadedFiles = await Promise.all(uploadPromises);
+				data.imagePath = uploadedFiles;
+				const updatedUser = await userService.updateUser(userId, data);
+
+				new ApiResponse(res).success(updatedUser, "User updated successfully");
+			}
+		} catch (error) {
+			console.error(error);
 		}
-		const updatedUser = await userService.updateUser(userId, data);
-		new ApiResponse(res).success(updatedUser, "User updated successfully");
 	}
 }
 

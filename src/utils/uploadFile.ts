@@ -1,95 +1,84 @@
-import AWS, { S3 } from "aws-sdk";
+import {
+	S3Client,
+	HeadObjectCommandOutput,
+	HeadObjectCommand,
+	GetObjectCommand,
+	PutObjectCommand,
+	DeleteObjectCommand,
+} from "@aws-sdk/client-s3";
 import Config from "../config/config";
-import fs from "fs";
+
+import { Readable, PassThrough } from "stream";
 
 const config = Config(process.env.NODE_ENV);
 
-const credentials = new AWS.EnvironmentCredentials("AWS");
-AWS.config.credentials = credentials;
+interface StreamFileResponse {
+	headResponse: HeadObjectCommandOutput;
+	stream: Readable;
+}
 
-const s3 = new AWS.S3({
-	accessKeyId: config.awsAccessKeyId,
-	secretAccessKey: config.awsSecretAccessKey,
-	region: config.awsRegion,
+const s3 = new S3Client({
+	region: config.awsRegion || "",
+	credentials: {
+		accessKeyId: config.awsAccessKeyId || "",
+		secretAccessKey: config.awsSecretAccessKey || "",
+	},
 });
 
-export function uploadFileToS3(params: {
-	Key: string;
-	Body: Buffer;
-}): Promise<S3.ManagedUpload.SendData> {
-	return new Promise((resolve, reject) => {
-		const s3Params: S3.Types.PutObjectRequest = {
+export const uploadFileToS3 = async (params: {
+	key: string;
+	file: Express.Multer.File;
+}) => {
+	try {
+		const fileStream = new PassThrough();
+		fileStream.end(params.file.buffer);
+
+		const uploadParams = {
 			Bucket: config.awsBucketName || "",
-			Key: params.Key,
-			Body: params.Body,
-			Metadata: {
-				timestamp: new Date().toISOString(),
-			},
+			Key: params.key,
+			Body: fileStream,
+			ContentType: params.file.mimetype,
+			ContentLength: params.file.size,
 		};
-		s3.upload(s3Params, (err, data) => {
-			if (err) {
-				reject(err);
-			}
 
-			const processingError = false;
-			if (processingError) {
-				const deleteParams: S3.Types.DeleteObjectRequest = {
-					Bucket: s3Params.Bucket,
-					Key: s3Params.Key,
-				};
+		await s3.send(new PutObjectCommand(uploadParams));
+	} catch (err) {
+		const error = err as { message: string };
+		throw new Error(error.message);
+	}
+};
 
-				s3.deleteObject(deleteParams, (err, data) => {
-					if (err) {
-						reject(err);
-					} else {
-						console.log("File deleted successfully", data);
-					}
-				});
-				return reject(new Error("File processing error"));
-			}
-			resolve(data);
-		});
-	});
-}
+export const deleteFileFromS3 = async (key: string) => {
+	const params = {
+		Bucket: config.awsBucketName,
+		Key: key,
+	};
+	const data = await s3.send(new DeleteObjectCommand(params));
+	return data;
+};
 
-export function deleteFileFromS3(params: {
-	Key: string;
-}): Promise<S3.DeleteObjectOutput> {
-	return new Promise((resolve, reject) => {
-		const s3Params: S3.Types.DeleteObjectRequest = {
-			Bucket: config.awsBucketName || "",
-			Key: params.Key,
+export const getFileFroms3 = async (
+	key: string
+): Promise<StreamFileResponse> => {
+	try {
+		const params = {
+			Bucket: config.awsBucketName,
+			Key: key,
 		};
-		s3.deleteObject(s3Params, (err, data) => {
-			if (err) {
-				reject(err);
-			}
-			resolve(data);
-		});
-	});
-}
+		//
+		const headResponse = await s3.send(new HeadObjectCommand(params));
 
-export function getFileFromS3(params: {
-	Key: string;
-}): Promise<S3.GetObjectOutput> {
-	return new Promise((resolve, reject) => {
-		const s3Params: S3.Types.GetObjectRequest = {
-			Bucket: config.awsBucketName || "",
-			Key: params.Key,
-		};
-		s3.getObject(s3Params, (err, data) => {
-			if (err) {
-				reject(err);
-			}
-			resolve(data);
-		});
-	});
-}
+		// Now get the object data and stream it
+		const response = await s3.send(new GetObjectCommand(params));
+		const stream = response.Body as Readable;
 
-export function deleteFileLocally(filePath: string) {
-	fs.unlink(filePath, (err) => {
-		if (err) {
-			console.error("Error deleting file", err);
+		if (!stream) {
+			throw new Error("Content not found");
 		}
-	});
-}
+
+		return { headResponse, stream };
+	} catch (err) {
+		const error = err as { message: string };
+		throw new Error(error.message);
+	}
+};

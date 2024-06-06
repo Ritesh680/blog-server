@@ -6,7 +6,7 @@ class UserService {
 
 	getUsers() {
 		return this.user.aggregate([
-			{ $unwind: "$imagePath" },
+			// { $unwind: "$imagePath" },
 			{
 				$project: {
 					_id: 1,
