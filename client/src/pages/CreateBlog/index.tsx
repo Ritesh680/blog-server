@@ -12,8 +12,10 @@ import { QueryKeys } from "@/constants/QueryKeys";
 import articleService from "@/service/article.service";
 import tagService from "@/service/tags.service";
 import Editor from "@/components/Editor";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { createFileFromUrl } from "../../utils/function";
+import { Skeleton } from "@/components/Skeleton";
+import InfiniteLoader from "@/components/InfiniteLoader";
 
 const CreateorEdit_Blog = () => {
 	const navigate = useNavigate();
@@ -28,6 +30,8 @@ const CreateorEdit_Blog = () => {
 		formState: { errors },
 		reset,
 	} = useForm<ICreateArticle>();
+
+	const [isFileDownloading, setIsFileDownloading] = useState(false);
 
 	const { data } = useQuery({
 		queryKey: [QueryKeys.Article, blogId],
@@ -66,18 +70,20 @@ const CreateorEdit_Blog = () => {
 
 	useEffect(() => {
 		if (data) {
+			setIsFileDownloading(true);
 			reset({
 				title: data.title,
 				description: data.description,
-				categoryId: data.categoryId,
+				categoryId: data.tag._id,
 				content: data.content,
 			});
 
 			createFileFromUrl(
-				`${import.meta.env.VITE_API_URL}/${data.filesPath[0]}`,
+				`${import.meta.env.VITE_FILE_URL}/${data.filesPath[0]}`,
 				"cover.jpg"
 			).then((file) => {
 				setValue("files", file);
+				setIsFileDownloading(false);
 			});
 		}
 	}, [data, reset, setValue]);
@@ -133,12 +139,15 @@ const CreateorEdit_Blog = () => {
 						/>
 					</div>
 
-					{watch("files") && (
+					{isFileDownloading && <Skeleton className="w-44 h-44" />}
+					{watch("files") ? (
 						<img
 							src={URL.createObjectURL(watch("files"))}
 							alt="Cover"
 							className="w-44 aspect-auto"
 						/>
+					) : (
+						<Skeleton className="w-44 h-44" />
 					)}
 					{watch("files") && (
 						<span className="text-gray-500">{watch("files").name}</span>
@@ -173,7 +182,9 @@ const CreateorEdit_Blog = () => {
 					</div>
 
 					<div className="ml-auto">
-						<Button type="submit">Save</Button>
+						<Button type="submit">
+							{isPending || updateBlog.isLoading ? <InfiniteLoader /> : "Save"}
+						</Button>
 					</div>
 				</form>
 			</div>

@@ -18,13 +18,18 @@ const BlogCardHorizontal = ({ data }: { data: ArticleList }) => {
 		filesPath,
 	} = data;
 
+	if (data === null) return <></>;
+
 	return (
 		<div className="rounded bg-black/10">
 			<div className="container grid grid-cols-1 mx-auto lg:grid-cols-12 ">
 				{/* picture */}
 				<div className="mx-0 my-6 col-span-full lg:col-span-4 lg:order-1">
 					<img
-						src={`${import.meta.env.VITE_API_URL}/${filesPath?.[0]}`}
+						src={`${import.meta.env.VITE_FILE_URL}/${filesPath?.[0]}`}
+						onLoadStart={(e: SyntheticEvent<HTMLImageElement>) =>
+							(e.currentTarget.src = "/loading.gif")
+						}
 						onError={(e: SyntheticEvent<HTMLImageElement>) =>
 							(e.currentTarget.src = "/fallback.png")
 						}
@@ -69,7 +74,7 @@ const BlogCardHorizontal = ({ data }: { data: ArticleList }) => {
 						<div className="flex items-center space-x-4">
 							<Avatar>
 								<AvatarImage
-									src={`${import.meta.env.VITE_API_URL}/${user?.imagePath}`}
+									src={`${import.meta.env.VITE_FILE_URL}/${user?.imagePath}`}
 									alt="@shadcn"
 								/>
 								<AvatarFallback>

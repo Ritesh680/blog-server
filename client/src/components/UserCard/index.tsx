@@ -6,7 +6,7 @@ const UserCard = ({ user }: { user: UserList }) => {
 		<div className="flex items-center gap-5">
 			<Avatar>
 				<AvatarImage
-					src={`${import.meta.env.VITE_API_URL}/${user.imagePath}`}
+					src={`${import.meta.env.VITE_FILE_URL}/${user.imagePath}`}
 				/>
 				<AvatarFallback>{user?.username?.slice(0, 2)}</AvatarFallback>
 			</Avatar>

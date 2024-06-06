@@ -2,10 +2,9 @@ import axios, { AxiosError, AxiosRequestConfig, Method } from "axios";
 import { createError, objectToFormData } from "./function";
 const instance = axios.create({
 	baseURL: import.meta.env.VITE_API_URL,
-	timeout: 1000,
+	timeout: 5000,
 	headers: {
 		"Content-Type": "application/json",
-		"access-control-allow-origin": "*",
 	},
 });
 const token = localStorage.getItem("token");

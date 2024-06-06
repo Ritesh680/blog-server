@@ -54,7 +54,9 @@ const CommentCard = ({ data }: { data: IComment }) => {
 					<div className="flex mb-5 space-x-4">
 						<Avatar>
 							<AvatarImage
-								src={`${import.meta.env.VITE_API_URL}/${data?.user?.imagePath}`}
+								src={`${import.meta.env.VITE_FILE_URL}/${
+									data?.user?.imagePath
+								}`}
 								alt="@shadcn"
 							/>
 							<AvatarFallback>

@@ -15,6 +15,7 @@ declare global {
 		tagsFollowing: string[];
 		followers: UserList[];
 		following: UserList[];
+		articles: ArticleList[];
 	}
 
 	interface ArticleList {
@@ -33,6 +34,12 @@ declare global {
 	interface TagList {
 		_id: string;
 		name: string;
+	}
+
+	interface IUpdateUser {
+		username: string;
+		description: string;
+		files: File;
 	}
 
 	interface ICreateArticle {

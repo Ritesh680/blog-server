@@ -259,7 +259,7 @@ const BlogDetailPage = () => {
 						<div className="flex mb-5 space-x-4">
 							<Avatar>
 								<AvatarImage
-									src={`${import.meta.env.VITE_API_URL}/${
+									src={`${import.meta.env.VITE_FILE_URL}/${
 										data?.user?.imagePath
 									}`}></AvatarImage>
 								<AvatarFallback>
@@ -390,7 +390,7 @@ const BlogDetailPage = () => {
 					</div>
 					<Separator className="mb-5" />
 					<img
-						src={`${import.meta.env.VITE_API_URL}/${data.filesPath?.[0]}`}
+						src={`${import.meta.env.VITE_FILE_URL}/${data.filesPath?.[0]}`}
 						onError={(e) => {
 							e.currentTarget.onerror = null;
 							e.currentTarget.src = "https://via.placeholder.com/150";

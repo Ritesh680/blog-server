@@ -10,8 +10,8 @@ const BlogList = ({ data }: { data: ArticleList[] }) => {
 
 	return (
 		<div className="flex flex-wrap items-stretch h-[400px]">
-			{data?.map((data) => (
-				<div key={data._id} className="mb-5">
+			{data?.map((data, index) => (
+				<div key={data?._id + index} className="mb-5">
 					{/* <BlogCard data={data} /> */}
 					<BlogCardHorizontal data={data} />
 				</div>

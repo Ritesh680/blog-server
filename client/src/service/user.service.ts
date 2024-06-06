@@ -32,7 +32,7 @@ class UserService {
 		return res.data;
 	}
 
-	async updateUser(id: string, data: UserList) {
+	async updateUser(id: string, data: IUpdateUser) {
 		const res = await axiosInstance<ApiResponse<UserList>>(
 			"put",
 			`/users/${id}`,

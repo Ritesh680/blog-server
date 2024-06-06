@@ -54,7 +54,7 @@ const Navbar = () => {
 								<DropdownMenuTrigger>
 									<Avatar>
 										<AvatarImage
-											src={`${import.meta.env.VITE_API_URL}/${
+											src={`${import.meta.env.VITE_FILE_URL}/${
 												userProfile?.imagePath?.[0]
 											}`}
 											alt="@shadcn"

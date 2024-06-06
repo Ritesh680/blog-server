@@ -19,8 +19,9 @@ import { Label } from "../Label";
 import { Input } from "../Input";
 import { Button } from "../Button";
 import InfiniteLoader from "../InfiniteLoader";
+import { toast } from "@/hooks/useToast";
 
-const EditUserDetails = ({ data }: { data?: IUser }) => {
+const EditUserDetails = ({ data }: { data?: UserList }) => {
 	const queryClient = useQueryClient();
 	const { userProfile, fetchProfile } = useContext(UserContext);
 	const dialogCloseRef = useRef<HTMLButtonElement>(null);
@@ -29,7 +30,7 @@ const EditUserDetails = ({ data }: { data?: IUser }) => {
 		dialogCloseRef.current?.click();
 	}
 
-	const { register, handleSubmit, setValue, reset } = useForm<IUser>();
+	const { register, handleSubmit, setValue, reset } = useForm<IUpdateUser>();
 
 	const handleFileInput = (e: React.ChangeEvent<HTMLInputElement>) => {
 		const value = e.target.files![0];
@@ -42,13 +43,16 @@ const EditUserDetails = ({ data }: { data?: IUser }) => {
 	};
 
 	const { mutate, isLoading } = useMutation({
-		mutationFn: (data: IUser) =>
+		mutationFn: (data: IUpdateUser) =>
 			userService.updateUser(userProfile?._id || "", data),
 
 		onSettled: () => {
 			queryClient.refetchQueries({
 				queryKey: [QueryKeys.Users, userProfile?._id],
 			});
+		},
+		onError: () => {
+			toast({ title: "Error while updating profile", type: "error" });
 		},
 		onSuccess: () => {
 			queryClient.refetchQueries({
@@ -60,12 +64,17 @@ const EditUserDetails = ({ data }: { data?: IUser }) => {
 		},
 	});
 
-	const onSubmit = (data: IUser) => {
+	const onSubmit = (data: IUpdateUser) => {
 		mutate(data);
 	};
 
 	useEffect(() => {
-		reset(data);
+		if (data) {
+			reset({
+				username: data?.username,
+				description: data?.description,
+			});
+		}
 	}, [data, reset]);
 	return (
 		<Dialog>
@@ -115,7 +124,7 @@ const EditUserDetails = ({ data }: { data?: IUser }) => {
 							id="about"
 							placeholder="a small brief about you"
 							className="col-span-3"
-							{...register("about")}
+							{...register("description")}
 						/>
 					</div>
 				</div>
